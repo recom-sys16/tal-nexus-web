@@ -1,0 +1,1457 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TAL Nexus Chat</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #06080d;
+      --panel: #101722;
+      --panel-2: #162030;
+      --line: rgba(225, 238, 255, 0.14);
+      --text: #f5f8ff;
+      --muted: #96a6bb;
+      --cyan: #48d8ff;
+      --green: #72e5ae;
+      --amber: #ffd36d;
+      --red: #ff7380;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(72, 216, 255, 0.18), transparent 32%),
+        radial-gradient(circle at 88% 12%, rgba(114, 229, 174, 0.13), transparent 28%),
+        linear-gradient(135deg, #05070b 0%, #111925 52%, #06080d 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .login {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+    }
+
+    .login-card {
+      width: min(980px, 100%);
+      min-height: 570px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 390px;
+      border: 1px solid var(--line);
+      background: rgba(16, 23, 34, 0.9);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.46);
+    }
+
+    .visual {
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(rgba(72, 216, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(72, 216, 255, 0.07) 1px, transparent 1px),
+        #080c12;
+      background-size: 32px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .visual-core {
+      width: min(320px, 72vw);
+      aspect-ratio: 1;
+      border: 1px solid rgba(72, 216, 255, 0.58);
+      display: grid;
+      place-items: center;
+      position: relative;
+      background: rgba(72, 216, 255, 0.05);
+      box-shadow: inset 0 0 60px rgba(72, 216, 255, 0.12), 0 0 80px rgba(72, 216, 255, 0.12);
+    }
+
+    .visual-core::before,
+    .visual-core::after {
+      content: "";
+      position: absolute;
+      inset: 28px;
+      border: 1px solid rgba(114, 229, 174, 0.42);
+      transform: rotate(45deg);
+    }
+
+    .visual-core::after {
+      inset: 68px;
+      border-color: rgba(255, 211, 109, 0.4);
+      animation: rotate 7s linear infinite;
+    }
+
+    @keyframes rotate {
+      to { transform: rotate(405deg); }
+    }
+
+    .visual-core strong {
+      z-index: 1;
+      font-size: 32px;
+    }
+
+    .side {
+      padding: 34px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .mark {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(72, 216, 255, 0.5);
+      background: linear-gradient(135deg, rgba(72, 216, 255, 0.24), rgba(114, 229, 174, 0.13));
+      font-weight: 900;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 32px;
+    }
+
+    .muted {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .made {
+      color: var(--green);
+      font-weight: 800;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--text);
+      outline: none;
+      padding: 13px 14px;
+      min-height: 48px;
+    }
+
+    textarea {
+      resize: none;
+      min-height: 54px;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: rgba(72, 216, 255, 0.65);
+    }
+
+    .primary {
+      min-height: 48px;
+      border: 0;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      color: #031016;
+      font-weight: 900;
+      padding: 0 18px;
+    }
+
+    .secondary,
+    .icon {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.055);
+      color: var(--text);
+      padding: 0 14px;
+    }
+
+    .hint {
+      color: var(--amber);
+      min-height: 20px;
+      font-size: 13px;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(6, 8, 13, 0.76);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .chat-shell {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .chat-panel,
+    .info-panel {
+      border: 1px solid var(--line);
+      background: rgba(16, 23, 34, 0.84);
+      min-height: 0;
+    }
+
+    .messages {
+      height: calc(100vh - 224px);
+      min-height: 440px;
+      overflow: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .msg {
+      max-width: 82%;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.045);
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .msg.user {
+      align-self: flex-end;
+      background: rgba(72, 216, 255, 0.13);
+      border-color: rgba(72, 216, 255, 0.3);
+    }
+
+    .msg.ai {
+      align-self: flex-start;
+    }
+
+    .composer {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: 10px;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      background: rgba(0, 0, 0, 0.16);
+    }
+
+    .typing {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 0;
+    }
+
+    .typing i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--cyan);
+      animation: blink 1.2s infinite;
+    }
+
+    .typing i:nth-child(2) { animation-delay: 0.2s; }
+    .typing i:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    .conn-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+    }
+
+    .conn-dot.offline {
+      background: var(--amber);
+      box-shadow: 0 0 10px var(--amber);
+    }
+
+    .info-panel {
+      padding: 18px;
+    }
+
+    .info-panel h2 {
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+
+    .status-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .status {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 12px;
+    }
+
+    .status strong {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .status span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    dialog {
+      width: min(540px, calc(100% - 28px));
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      padding: 0;
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.64);
+      backdrop-filter: blur(6px);
+    }
+
+    .settings {
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+    }
+
+    @media (max-width: 860px) {
+      .login-card,
+      .chat-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .visual {
+        min-height: 340px;
+      }
+
+      .messages {
+        height: 54vh;
+      }
+    }
+
+    @media (max-width: 560px) {
+      header,
+      .composer {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .chat-shell {
+        padding: 12px;
+      }
+
+      .composer {
+        display: grid;
+      }
+
+      .msg {
+        max-width: 100%;
+      }
+    }
+    /* ===== Rounded · polished · feel-good ===== */
+    :root {
+      --r-sm: 12px;
+      --r-md: 16px;
+      --r-lg: 22px;
+    }
+
+    .login-card,
+    .visual,
+    .visual-core,
+    .chat-panel,
+    .info-panel,
+    .messages,
+    .composer,
+    .msg,
+    .status,
+    .mark,
+    dialog,
+    .settings {
+      border-radius: var(--r-lg);
+    }
+
+    input,
+    textarea,
+    .primary,
+    .secondary,
+    .icon,
+    button {
+      border-radius: var(--r-sm);
+    }
+
+    .login-card {
+      box-shadow: 0 34px 110px rgba(0, 0, 0, 0.52);
+    }
+
+    .chat-panel,
+    .info-panel {
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.32);
+    }
+
+    button,
+    input,
+    textarea,
+    .msg,
+    .status {
+      transition: background-color .2s ease, border-color .2s ease,
+                  box-shadow .2s ease, color .2s ease, transform .15s ease, filter .2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+
+    button:active {
+      transform: translateY(0);
+      filter: brightness(0.95);
+    }
+
+    .primary:hover {
+      box-shadow: 0 10px 26px rgba(72, 216, 255, 0.34);
+    }
+
+    input:hover,
+    textarea:hover {
+      border-color: rgba(72, 216, 255, 0.38);
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: rgba(72, 216, 255, 0.7);
+    }
+
+    .status:hover {
+      border-color: rgba(72, 216, 255, 0.42);
+      transform: translateY(-1px);
+    }
+
+    ::selection {
+      background: rgba(72, 216, 255, 0.28);
+      color: #fff;
+    }
+
+    /* Typing indicator */
+    .typing {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+      padding: 4px 2px;
+    }
+
+    .typing i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      animation: blink 1.2s infinite ease-in-out;
+    }
+
+    .typing i:nth-child(2) { animation-delay: .2s; }
+    .typing i:nth-child(3) { animation-delay: .4s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: .25; transform: scale(.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Message meta (timestamp) */
+    .msg .meta {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      opacity: .75;
+    }
+
+    .msg.user .meta {
+      text-align: right;
+    }
+
+    /* Empty state */
+    .empty {
+      margin: auto;
+      text-align: center;
+      color: var(--muted);
+      padding: 30px;
+      max-width: 420px;
+    }
+
+    .empty .orb {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(72, 216, 255, 0.5);
+      border-radius: 50%;
+      background: rgba(72, 216, 255, 0.08);
+      font-weight: 900;
+      font-size: 20px;
+      box-shadow: 0 0 40px rgba(72, 216, 255, 0.18);
+    }
+
+    .empty h3 {
+      margin: 0 0 6px;
+      color: var(--text);
+      font-size: 18px;
+    }
+
+    .empty p {
+      margin: 0;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    /* Fade-in for messages */
+    .msg {
+      animation: msgIn .25s ease;
+    }
+
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Admin Manual */
+    .manual {
+      padding: 24px;
+      display: grid;
+      gap: 14px;
+      max-height: 70vh;
+      overflow: auto;
+    }
+
+    .manual h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .manual h3 {
+      font-size: 15px;
+      margin: 6px 0 0;
+      color: var(--cyan);
+    }
+
+    .manual p,
+    .manual li {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 13px;
+    }
+
+    .manual ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .manual .section {
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .manual .section strong {
+      color: var(--text);
+    }
+
+    .manual .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      background: rgba(72, 216, 255, 0.14);
+      color: var(--cyan);
+      margin-right: 6px;
+    }
+
+    .manual .tag.green {
+      background: rgba(114, 229, 174, 0.14);
+      color: var(--green);
+    }
+
+    .manual .tag.amber {
+      background: rgba(255, 211, 109, 0.14);
+      color: var(--amber);
+    }
+
+    .manual .tag.red {
+      background: rgba(255, 115, 128, 0.14);
+      color: var(--red);
+    }
+
+    .manual-gate {
+      padding: 24px;
+      display: grid;
+      gap: 14px;
+      text-align: center;
+    }
+
+    .manual-gate h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .manual-gate p {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    /* Better TAL Logo */
+    .logo-wrap {
+      position: relative;
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+    }
+
+    .logo-wrap .ring {
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(72, 216, 255, 0.5);
+      border-radius: 50%;
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+
+    .logo-wrap .ring::before,
+    .logo-wrap .ring::after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border: 1px solid rgba(114, 229, 174, 0.4);
+      border-radius: 50%;
+    }
+
+    .logo-wrap .ring::after {
+      inset: 16px;
+      border-color: rgba(255, 211, 109, 0.35);
+      animation: logoSpin 6s linear infinite;
+    }
+
+    .logo-wrap .core {
+      position: relative;
+      z-index: 1;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(72, 216, 255, 0.3), rgba(114, 229, 174, 0.2));
+      border: 1px solid rgba(72, 216, 255, 0.6);
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 24px rgba(72, 216, 255, 0.3);
+    }
+
+    @keyframes logoPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.08); opacity: 0.7; }
+    }
+
+    @keyframes logoSpin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Neural Network Visualization */
+    .neural-panel {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      background: rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+    }
+
+    .neural-panel .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .neural-panel .head strong {
+      font-size: 13px;
+    }
+
+    .neural-panel .head span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .neural-panel canvas {
+      width: 100%;
+      height: 180px;
+      display: block;
+    }
+
+    .neural-readout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+
+    .neural-readout .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .neural-readout .stat b {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 3px;
+    }
+
+    .neural-readout .stat strong {
+      font-size: 13px;
+    }
+
+    .neural-readout .bar {
+      height: 4px;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.08);
+      margin-top: 6px;
+      overflow: hidden;
+    }
+
+    .neural-readout .bar > i {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      border-radius: 99px;
+      width: 0%;
+      transition: width .4s ease;
+    }
+</style>
+</head>
+<body>
+  <section id="login" class="login">
+    <div class="login-card">
+      <div class="visual">
+          <div class="logo-wrap">
+            <div class="ring"></div>
+            <div class="core">TAL</div>
+          </div>
+      </div>
+      <div class="side">
+        <div class="brand">
+          <div class="mark">TAL</div>
+          <div>
+            <h1>TAL Nexus</h1>
+            <p class="made">Made by Recom Sys Ltd</p>
+          </div>
+        </div>
+        <p class="muted">Founded by Aryan G. TAL Nexus is an AI voice chatbot with a live neural network core. Ask questions, control devices by voice, and watch the network think in real time.</p>
+        <input id="password" type="password" placeholder="Website password">
+        <button id="unlock" class="primary">Unlock Chat</button>
+        <p id="loginHint" class="hint">Default password: guardian</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="app" class="app hidden">
+    <header>
+      <div class="brand">
+        <div class="mark">TAL</div>
+        <div>
+          <h2>TAL Nexus Chat</h2>
+          <p class="made">Made by Recom Sys Ltd. Founded by Aryan G.</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="voiceToggle" class="secondary">Voice: On</button>
+        <button id="clearChat" class="secondary">Clear Chat</button>
+        <button id="manualOpen" class="secondary">Manual</button>
+        <button id="settingsOpen" class="secondary">Settings</button>
+        <button id="lock" class="secondary">Lock</button>
+      </div>
+    </header>
+
+    <main class="chat-shell">
+      <section class="chat-panel">
+        <div id="messages" class="messages"></div>
+        <div class="composer">
+          <button id="mic" class="icon">Mic</button>
+          <textarea id="prompt" placeholder="Ask TAL Nexus..."></textarea>
+          <button id="send" class="primary">Send</button>
+          <button id="stopVoice" class="secondary">Stop</button>
+        </div>
+      </section>
+
+      <aside class="info-panel">
+        <h2>Voice Chatbot</h2>
+        <p class="muted">Use the Mic button for browser speech recognition. Tal can also speak replies when voice is on.</p>
+        <div class="status-list">
+          <div class="status"><strong>Password <em>active</em></strong><span>Website-only password gate</span></div>
+          <div class="status"><strong>Face ID <em>off</em></strong><span>Not included in web version</span></div>
+          <div class="status"><strong>Voice <em id="voiceState">on</em></strong><span>Speech synthesis and recognition</span></div>
+          <div class="status"><strong>AI Mode <em id="aiMode">backend</em></strong><span>Uses the local API server when running</span></div>
+          <div class="status"><strong>Connection <em id="connState">checking</em></strong><span><span class="conn-dot" id="connDot"></span>API server status</span></div>
+        </div>
+
+        <div class="neural-panel">
+          <div class="head">
+            <strong>Neural Core</strong>
+            <span><span class="conn-dot"></span>live</span>
+          </div>
+          <canvas id="neuralCanvas"></canvas>
+          <div class="neural-readout">
+            <div class="stat"><b>Intent</b><strong id="nnIntent">—</strong>
+              <div class="bar"><i id="nnIntentBar"></i></div></div>
+            <div class="stat"><b>Confidence</b><strong id="nnConf">0%</strong>
+              <div class="bar"><i id="nnConfBar"></i></div></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </section>
+
+  <dialog id="settings">
+    <div class="settings">
+      <h2>Website Settings</h2>
+      <p class="muted">This website is separate from the Mac app. Settings are stored in this browser only.</p>
+      <input id="oldPassword" type="password" placeholder="Current website password">
+      <input id="newPassword" type="password" placeholder="New website password">
+      <input id="endpoint" placeholder="Optional AI backend endpoint, e.g. http://localhost:8787/chat">
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button id="saveSettings" class="primary">Save</button>
+        <button id="settingsClose" class="secondary">Close</button>
+      </div>
+      <p id="settingsHint" class="hint"></p>
+    </div>
+  </dialog>
+
+  <dialog id="manualGate">
+    <div class="manual-gate">
+      <h2>🔒 Admin Access</h2>
+      <p>Enter the admin password to open the TAL Nexus Admin Manual.</p>
+      <input id="manualPassword" type="password" placeholder="Admin password">
+      <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+        <button id="manualUnlock" class="primary">Unlock Manual</button>
+        <button id="manualGateClose" class="secondary">Cancel</button>
+      </div>
+      <p id="manualGateHint" class="hint"></p>
+    </div>
+  </dialog>
+
+  <dialog id="manual">
+    <div class="manual">
+      <h2>Admin Manual</h2>
+      <p class="muted">TAL Nexus Website — Operator Guide</p>
+
+      <div class="section">
+        <h3><span class="tag">1</span>Getting Started</h3>
+        <p><strong>Default password:</strong> <code>guardian</code>. Change it in <strong>Settings</strong> after first login. The password is stored locally in this browser only.</p>
+      </div>
+
+      <div class="section">
+        <h3><span class="tag green">2</span>Voice Chat</h3>
+        <ul>
+          <li>Tap <strong>Mic</strong> to speak. Your browser will transcribe your question and send it to TAL Nexus.</li>
+          <li>Keep <strong>Voice: On</strong> to hear spoken replies through speech synthesis.</li>
+          <li>Use <strong>Stop</strong> to cancel any ongoing speech output.</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3><span class="tag green">3</span>AI Backend</h3>
+        <p>By default the website connects to a local API server at <code>http://127.0.0.1:8787/chat</code>. Start it with <strong>Run Tal AI API.command</strong> in the app folder. If the server is not running, the website falls back to built-in local answers.</p>
+        <p>You can point to any compatible endpoint in <strong>Settings → Optional AI backend endpoint</strong>.</p>
+      </div>
+
+      <div class="section">
+        <h3><span class="tag amber">4</span>Security Notes</h3>
+        <ul>
+          <li>This web version is <strong>password-only</strong>. Face ID is not included here.</li>
+          <li>All settings and the password live in <code>localStorage</code> for this browser.</li>
+          <li>Clearing browser data resets the password back to <code>guardian</code>.</li>
+          <li>TAL Nexus refuses stealth, malware, and unauthorized access requests by design.</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3><span class="tag red">5</span>Troubleshooting</h3>
+        <ul>
+          <li><strong>No voice?</strong> Use Chrome, Edge, or Safari. Firefox may not support Web Speech.</li>
+          <li><strong>Backend not replying?</strong> Make sure the API server is running and the endpoint is correct.</li>
+          <li><strong>Forgot password?</strong> Clear this site's browser data to reset to <code>guardian</code>.</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h3><span class="tag amber">6</span>Change Admin Password</h3>
+        <p>Change the admin password used to open this manual.</p>
+        <input id="adminOldPassword" type="password" placeholder="Current admin password">
+        <input id="adminNewPassword" type="password" placeholder="New admin password">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+          <button id="saveAdminPassword" class="primary">Save Admin Password</button>
+        </div>
+        <p id="adminPasswordHint" class="hint"></p>
+      </div>
+
+      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button id="manualClose" class="primary">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    const state = {
+      password: localStorage.getItem("tal.website.password") || "guardian",
+      endpoint: localStorage.getItem("tal.website.endpoint") || "http://127.0.0.1:8787/chat",
+      voice: localStorage.getItem("tal.website.voice") !== "off",
+      adminPassword: localStorage.getItem("tal.website.adminPassword") || "nexus123",
+      recognizing: false,
+      typing: false
+    };
+
+    const login = document.getElementById("login");
+    const app = document.getElementById("app");
+    const messages = document.getElementById("messages");
+    const prompt = document.getElementById("prompt");
+    const voiceToggle = document.getElementById("voiceToggle");
+    const voiceState = document.getElementById("voiceState");
+    const aiMode = document.getElementById("aiMode");
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+    if (recognition) {
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = "en-US";
+      recognition.onresult = event => {
+        prompt.value = event.results[0][0].transcript;
+        ask();
+      };
+      recognition.onend = () => {
+        state.recognizing = false;
+        document.getElementById("mic").textContent = "Mic";
+      };
+    }
+
+    function updateVoice() {
+      voiceToggle.textContent = `Voice: ${state.voice ? "On" : "Off"}`;
+      voiceState.textContent = state.voice ? "on" : "off";
+      aiMode.textContent = state.endpoint ? "backend" : "local";
+    }
+
+    async function checkConnection() {
+      const connState = document.getElementById("connState");
+      const connDot = document.getElementById("connDot");
+      if (!state.endpoint) {
+        connState.textContent = "local";
+        connDot.classList.add("offline");
+        return;
+      }
+      let timeout;
+      try {
+        const controller = new AbortController();
+        timeout = setTimeout(() => controller.abort(), 3000);
+        const response = await fetch(state.endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: "ping" }),
+          signal: controller.signal
+        });
+        if (response.ok) {
+          connState.textContent = "online";
+          connDot.classList.remove("offline");
+        } else {
+          connState.textContent = "offline";
+          connDot.classList.add("offline");
+        }
+      } catch (error) {
+        connState.textContent = "offline";
+        connDot.classList.add("offline");
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    function showTyping() {
+      if (state.typing) return;
+      state.typing = true;
+      const item = document.createElement("div");
+      item.className = "msg ai";
+      item.id = "typingIndicator";
+      item.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function hideTyping() {
+      state.typing = false;
+      const indicator = document.getElementById("typingIndicator");
+      if (indicator) indicator.remove();
+    }
+
+    function addMessage(role, text) {
+      const item = document.createElement("div");
+      item.className = `msg ${role}`;
+      item.textContent = text;
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function speak(text) {
+      if (!state.voice || !("speechSynthesis" in window)) return;
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      speechSynthesis.speak(utterance);
+    }
+
+    async function ask() {
+      const text = prompt.value.trim();
+      if (!text) return;
+      prompt.value = "";
+      addMessage("user", text);
+      showTyping();
+      nnRun(text);
+      const answer = await getAnswer(text);
+      hideTyping();
+      addMessage("ai", answer);
+      speak(answer);
+    }
+
+    async function getAnswer(text) {
+      if (state.endpoint) {
+        try {
+          const response = await fetch(state.endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text })
+          });
+          const data = await response.json();
+          return data.answer || data.text || "The backend replied, but no answer field was found.";
+        } catch (error) {
+          return `Backend request failed: ${error.message}. Local mode is still available.`;
+        }
+      }
+      return localAnswer(text);
+    }
+
+    function localAnswer(text) {
+      const lower = text.toLowerCase();
+      if (["stealth", "undetected", "bypass", "malware", "hack wifi"].some(word => lower.includes(word))) {
+        return "I can help with ethical defensive testing, password safety, audit logs, and securing your own systems. I cannot help with stealth, evasion, malware, or unauthorized access.";
+      }
+      if (/^(hello|hi|hey|sup|yo|greetings)/.test(lower)) {
+        return "Hey, I'm TAL Nexus. Ask me anything, or use your voice to control devices and the interface.";
+      }
+      if (lower.includes("who made") || lower.includes("company") || lower.includes("founder")) {
+        return "TAL Nexus was made by Recom Sys Ltd and founded by Aryan G.";
+      }
+      if (lower.includes("voice")) {
+        return "Voice is built into this website through browser speech recognition and speech synthesis. Use Mic to talk and Voice On to hear replies.";
+      }
+      if (lower.includes("status") || lower.includes("how are you")) {
+        return "Neural core is active and learning from every message. Devices are ready for voice commands.";
+      }
+      if (lower.includes("neural") || lower.includes("network") || lower.includes("brain")) {
+        return "My neural core is a small feed-forward network that classifies your intent live on the canvas. Watch it fire when you send a message.";
+      }
+      return "I am TAL Nexus, made by Recom Sys Ltd and founded by Aryan G. In local mode I can answer basic questions. Add a backend endpoint in Settings to connect a real AI service.";
+    }
+
+    document.getElementById("unlock").addEventListener("click", () => {
+      if (document.getElementById("password").value === state.password) {
+        login.classList.add("hidden");
+        app.classList.remove("hidden");
+        addMessage("ai", "TAL Nexus online. Made by Recom Sys Ltd and founded by Aryan G. Voice chatbot ready. Try asking about the company, voice features, or type a message below.");
+        speak("TAL Nexus online. Made by Recom Sys Ltd and founded by Aryan G.");
+        checkConnection();
+        sizeNNCanvas();
+        nnStart();
+      } else {
+        document.getElementById("loginHint").textContent = "Password did not match.";
+      }
+    });
+
+    document.getElementById("send").addEventListener("click", ask);
+    prompt.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        ask();
+      }
+    });
+
+    document.getElementById("mic").addEventListener("click", () => {
+      if (!recognition) {
+        addMessage("ai", "Speech recognition is not available in this browser.");
+        return;
+      }
+      if (state.recognizing) {
+        recognition.stop();
+        return;
+      }
+      state.recognizing = true;
+      document.getElementById("mic").textContent = "Listening";
+      recognition.start();
+    });
+
+    voiceToggle.addEventListener("click", () => {
+      state.voice = !state.voice;
+      localStorage.setItem("tal.website.voice", state.voice ? "on" : "off");
+      if (!state.voice && "speechSynthesis" in window) speechSynthesis.cancel();
+      updateVoice();
+    });
+
+    document.getElementById("stopVoice").addEventListener("click", () => {
+      if ("speechSynthesis" in window) speechSynthesis.cancel();
+    });
+
+    document.getElementById("lock").addEventListener("click", () => {
+      if ("speechSynthesis" in window) speechSynthesis.cancel();
+      app.classList.add("hidden");
+      login.classList.remove("hidden");
+      messages.innerHTML = "";
+      document.getElementById("password").value = "";
+    });
+
+    document.getElementById("clearChat").addEventListener("click", () => {
+      if ("speechSynthesis" in window) speechSynthesis.cancel();
+      messages.innerHTML = "";
+      addMessage("ai", "Chat cleared. Ask me anything!");
+    });
+
+    document.getElementById("settingsOpen").addEventListener("click", () => {
+      document.getElementById("endpoint").value = state.endpoint;
+      document.getElementById("settings").showModal();
+    });
+
+    document.getElementById("settingsClose").addEventListener("click", () => {
+      document.getElementById("settings").close();
+    });
+
+    // Admin Manual with password gate
+    document.getElementById("manualOpen").addEventListener("click", () => {
+      document.getElementById("manualPassword").value = "";
+      document.getElementById("manualGateHint").textContent = "";
+      document.getElementById("manualGate").showModal();
+    });
+
+    document.getElementById("manualGateClose").addEventListener("click", () => {
+      document.getElementById("manualGate").close();
+    });
+
+    document.getElementById("manualUnlock").addEventListener("click", () => {
+      const entered = document.getElementById("manualPassword").value;
+      if (entered === state.adminPassword) {
+        document.getElementById("manualGate").close();
+        document.getElementById("adminOldPassword").value = "";
+        document.getElementById("adminNewPassword").value = "";
+        document.getElementById("adminPasswordHint").textContent = "";
+        document.getElementById("manual").showModal();
+      } else {
+        document.getElementById("manualGateHint").textContent = "Incorrect admin password.";
+      }
+    });
+
+    document.getElementById("manualPassword").addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        document.getElementById("manualUnlock").click();
+      }
+    });
+
+    document.getElementById("manualClose").addEventListener("click", () => {
+      document.getElementById("manual").close();
+    });
+
+    document.getElementById("saveAdminPassword").addEventListener("click", () => {
+      const oldAdmin = document.getElementById("adminOldPassword").value;
+      const newAdmin = document.getElementById("adminNewPassword").value;
+      const hint = document.getElementById("adminPasswordHint");
+      if (oldAdmin !== state.adminPassword) {
+        hint.textContent = "Current admin password is incorrect.";
+        return;
+      }
+      if (newAdmin.length < 6) {
+        hint.textContent = "Use at least 6 characters.";
+        return;
+      }
+      state.adminPassword = newAdmin;
+      localStorage.setItem("tal.website.adminPassword", newAdmin);
+      hint.textContent = "Admin password updated.";
+    });
+
+    document.getElementById("saveSettings").addEventListener("click", () => {
+      const oldPassword = document.getElementById("oldPassword").value;
+      const newPassword = document.getElementById("newPassword").value;
+      const endpoint = document.getElementById("endpoint").value.trim();
+      if (newPassword) {
+        if (oldPassword !== state.password) {
+          document.getElementById("settingsHint").textContent = "Current website password is incorrect.";
+          return;
+        }
+        if (newPassword.length < 8) {
+          document.getElementById("settingsHint").textContent = "Use at least 8 characters.";
+          return;
+        }
+        state.password = newPassword;
+        localStorage.setItem("tal.website.password", newPassword);
+      }
+      state.endpoint = endpoint;
+      localStorage.setItem("tal.website.endpoint", endpoint);
+      document.getElementById("settingsHint").textContent = "Saved.";
+      updateVoice();
+      checkConnection();
+    });
+
+    // ---------- Neural Network Visualization ----------
+    const nnCanvas = document.getElementById("neuralCanvas");
+    const nnCtx = nnCanvas.getContext("2d");
+    let nnDPR = Math.max(1, window.devicePixelRatio || 1);
+
+    function sizeNNCanvas() {
+      const w = nnCanvas.clientWidth, h = nnCanvas.clientHeight;
+      if (w > 0 && h > 0) {
+        nnCanvas.width = w * nnDPR;
+        nnCanvas.height = h * nnDPR;
+        nnCtx.setTransform(nnDPR, 0, 0, nnDPR, 0, 0);
+      }
+    }
+
+    window.addEventListener("resize", () => {
+      sizeNNCanvas();
+      nnStart();
+    });
+
+    const NN_VOCAB = ["ac","air","cool","light","router","security","face","who","hello","status","lock","scan"];
+    const NN_CLASSES = ["device","security","identity","greeting","status","other"];
+    const NN_H1 = 8, NN_H2 = 6;
+
+    function nnLcg(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+    function nnMat(rows, cols, r) { const m = []; for (let i = 0; i < rows; i++) { const r0 = []; for (let j = 0; j < cols; j++) r0.push((r() * 2 - 1) * 0.9); m.push(r0); } return m; }
+    function nnVec(n, r) { const v = []; for (let i = 0; i < n; i++) v.push((r() * 2 - 1) * 0.9); return v; }
+    function nnSigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+    function nnSoftmax(a) { const m = Math.max.apply(null, a); const e = a.map(x => Math.exp(x - m)); const s = e.reduce((p, c) => p + c, 0); return e.map(x => x / s); }
+    function nnMatVec(M, v) { return M.map(r => r.reduce((s, w, j) => s + w * v[j], 0)); }
+    function nnAddv(a, b) { return a.map((x, i) => x + b[i]); }
+
+    const nnRnd = nnLcg(20260815);
+    const nn = {
+      W1: nnMat(NN_H1, NN_VOCAB.length, nnRnd), b1: nnVec(NN_H1, nnRnd),
+      W2: nnMat(NN_H2, NN_H1, nnRnd), b2: nnVec(NN_H2, nnRnd),
+      W3: nnMat(NN_CLASSES.length, NN_H2, nnRnd), b3: nnVec(NN_CLASSES.length, nnRnd)
+    };
+
+    function nnForward(input) {
+      const z1 = nnAddv(nnMatVec(nn.W1, input), nn.b1); const h1 = z1.map(nnSigmoid);
+      const z2 = nnAddv(nnMatVec(nn.W2, h1), nn.b2); const h2 = z2.map(nnSigmoid);
+      const z3 = nnAddv(nnMatVec(nn.W3, h2), nn.b3); const out = nnSoftmax(z3);
+      return { h1, h2, out, input };
+    }
+
+    function nnTrainStep(input, targetIdx, lr) {
+      const { h1, h2, out } = nnForward(input);
+      const dOut = out.slice(); dOut[targetIdx] -= 1;
+      for (let i = 0; i < nn.W3.length; i++) for (let j = 0; j < nn.W3[i].length; j++) nn.W3[i][j] -= lr * dOut[i] * h2[j];
+      for (let i = 0; i < nn.b3.length; i++) nn.b3[i] -= lr * dOut[i];
+      const dH2 = h2.map((h, j) => { let g = 0; for (let i = 0; i < nn.W3.length; i++) g += nn.W3[i][j] * dOut[i]; return g * h * (1 - h); });
+      for (let i = 0; i < nn.W2.length; i++) for (let j = 0; j < nn.W2[i].length; j++) nn.W2[i][j] -= lr * dH2[i] * h1[j];
+      for (let i = 0; i < nn.b2.length; i++) nn.b2[i] -= lr * dH2[i];
+      const dH1 = h1.map((h, j) => { let g = 0; for (let i = 0; i < nn.W2.length; i++) g += nn.W2[i][j] * dH2[i]; return g * h * (1 - h); });
+      for (let i = 0; i < nn.W1.length; i++) for (let j = 0; j < nn.W1[i].length; j++) nn.W1[i][j] -= lr * dH1[i] * input[j];
+      for (let i = 0; i < nn.b1.length; i++) nn.b1[i] -= lr * dH1[i];
+    }
+
+    function nnVectorize(text) {
+      const t = text.toLowerCase();
+      return NN_VOCAB.map(w => t.includes(w) ? 1 : 0);
+    }
+
+    function nnLabelIntent(text) {
+      const t = text.toLowerCase();
+      if (/(ac|air|cool|temp|heat|light|device|router|switch|turn)/.test(t)) return NN_CLASSES.indexOf("device");
+      if (/(security|hack|malware|safe|firewall|scan|breach)/.test(t)) return NN_CLASSES.indexOf("security");
+      if (/(face|who|founder|company|made|founded|owner)/.test(t)) return NN_CLASSES.indexOf("identity");
+      if (/(hello|hi|hey|greet|sup|yo)/.test(t)) return NN_CLASSES.indexOf("greeting");
+      if (/(status|how are|audit|log|report)/.test(t)) return NN_CLASSES.indexOf("status");
+      return NN_CLASSES.indexOf("other");
+    }
+
+    let nnLastAct = { input: NN_VOCAB.map(() => 0), h1: nn.b1.map(nnSigmoid), h2: nn.b2.map(nnSigmoid), out: nn.b3.map(nnSigmoid) };
+    let nnFireStart = -9999;
+
+    function nnRun(text) {
+      const input = nnVectorize(text);
+      const tIdx = nnLabelIntent(text);
+      for (let s = 0; s < 12; s++) nnTrainStep(input, tIdx, 0.08);
+      const r = nnForward(input);
+      nnLastAct = r;
+      nnFireStart = performance.now();
+      nnStart();
+      const top = r.out.indexOf(Math.max.apply(null, r.out));
+      document.getElementById("nnIntent").textContent = NN_CLASSES[top];
+      document.getElementById("nnConf").textContent = Math.round(r.out[top] * 100) + "%";
+      document.getElementById("nnIntentBar").style.width = "100%";
+      document.getElementById("nnConfBar").style.width = Math.round(r.out[top] * 100) + "%";
+    }
+
+    const NN_LAYERS = [
+      { name: "Input", n: NN_VOCAB.length, color: "#48d8ff", key: "input" },
+      { name: "Hidden", n: NN_H1, color: "#b58cff", key: "h1" },
+      { name: "Hidden", n: NN_H2, color: "#b58cff", key: "h2" },
+      { name: "Output", n: NN_CLASSES.length, color: "#72e5ae", key: "out" }
+    ];
+
+    function nnNodePos(layerIdx, nodeIdx, w, h) {
+      const padX = 30, padTop = 30, padBot = 20;
+      const cols = NN_LAYERS.length;
+      const x = padX + (w - padX * 2) * (layerIdx / (cols - 1));
+      const n = NN_LAYERS[layerIdx].n;
+      const y = padTop + (h - padTop - padBot) * (n === 1 ? 0.5 : nodeIdx / (n - 1));
+      return { x, y };
+    }
+
+    let nnRAF = null, nnLastFrame = 0;
+    function nnDraw(ts) {
+      const now = performance.now();
+      if (ts && ts - nnLastFrame < 33) { nnRAF = requestAnimationFrame(nnDraw); return; }
+      nnLastFrame = now;
+      const w = nnCanvas.clientWidth, h = nnCanvas.clientHeight;
+      nnCtx.clearRect(0, 0, w, h);
+      const fire = Math.max(0, 1 - (now - nnFireStart) / 1300);
+      const firing = fire > 0.02;
+      const act = nnLastAct;
+
+      for (let L = 0; L < NN_LAYERS.length - 1; L++) {
+        const a = act[NN_LAYERS[L].key], b = act[NN_LAYERS[L + 1].key];
+        const W = (L === 0 ? nn.W1 : L === 1 ? nn.W2 : nn.W3);
+        for (let i = 0; i < a.length; i++) for (let j = 0; j < b.length; j++) {
+          const p1 = nnNodePos(L, i, w, h), p2 = nnNodePos(L + 1, j, w, h);
+          const wij = W[j][i];
+          let intensity = Math.min(1, Math.abs(wij) * (0.4 + 0.6 * a[i]));
+          intensity = intensity * (0.2 + 0.8 * fire + 0.12);
+          const r = Math.round(60 + intensity * 120), g = Math.round(120 + intensity * 120), bl = Math.round(180 + intensity * 75);
+          nnCtx.strokeStyle = `rgba(${r},${g},${bl},${0.04 + intensity * 0.5})`;
+          nnCtx.lineWidth = 0.6 + intensity * 2.2;
+          nnCtx.beginPath(); nnCtx.moveTo(p1.x, p1.y); nnCtx.lineTo(p2.x, p2.y); nnCtx.stroke();
+        }
+      }
+
+      nnCtx.textAlign = "center"; nnCtx.textBaseline = "middle";
+      for (let L = 0; L < NN_LAYERS.length; L++) {
+        const layer = NN_LAYERS[L];
+        const vals = act[layer.key];
+        for (let i = 0; i < vals.length; i++) {
+          const p = nnNodePos(L, i, w, h);
+          const v = Math.max(0, Math.min(1, vals[i]));
+          if (firing) { nnCtx.shadowBlur = 6 + v * 22 + fire * 10; nnCtx.shadowColor = layer.color; }
+          else nnCtx.shadowBlur = 0;
+          nnCtx.beginPath(); nnCtx.arc(p.x, p.y, 5 + v * 4, 0, Math.PI * 2);
+          nnCtx.fillStyle = `rgba(${nnHex(layer.color)},${0.25 + v * 0.7})`;
+          nnCtx.fill();
+          nnCtx.shadowBlur = 0;
+          nnCtx.lineWidth = 1.4; nnCtx.strokeStyle = layer.color; nnCtx.stroke();
+        }
+        nnCtx.fillStyle = "rgba(150,166,187,0.9)"; nnCtx.font = "10px Inter, sans-serif";
+        nnCtx.fillText(layer.name, nnNodePos(L, 0, w, h).x, 14);
+      }
+      if (fire > 0.01) { nnRAF = requestAnimationFrame(nnDraw); }
+      else { nnRAF = null; }
+    }
+    function nnStart() { if (!nnRAF) nnRAF = requestAnimationFrame(nnDraw); }
+    function nnHex(c) { const n = parseInt(c.slice(1), 16); return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`; }
+
+    // Run neural network on each message
+    function nnRun(text) {
+      const input = nnVectorize(text);
+      const tIdx = nnLabelIntent(text);
+      for (let s = 0; s < 12; s++) nnTrainStep(input, tIdx, 0.08);
+      const r = nnForward(input);
+      nnLastAct = r;
+      nnFireStart = performance.now();
+      nnStart();
+      const top = r.out.indexOf(Math.max.apply(null, r.out));
+      document.getElementById("nnIntent").textContent = NN_CLASSES[top];
+      document.getElementById("nnConf").textContent = Math.round(r.out[top] * 100) + "%";
+      document.getElementById("nnIntentBar").style.width = "100%";
+      document.getElementById("nnConfBar").style.width = Math.round(r.out[top] * 100) + "%";
+    }
+
+    sizeNNCanvas();
+    nnStart();
+    updateVoice();
+    checkConnection();
+  </script>
+</body>
+</html>
